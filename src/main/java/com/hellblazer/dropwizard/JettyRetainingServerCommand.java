@@ -1,5 +1,5 @@
 /** 
- * (C) Copyright 2010 Hal Hildebrand, All Rights Reserved
+ * (C) Copyright 2012 Hal Hildebrand, All Rights Reserved
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import com.yammer.dropwizard.AbstractService;
 import com.yammer.dropwizard.cli.ConfiguredCommand;
-import com.yammer.dropwizard.cli.ServerCommand;
 import com.yammer.dropwizard.config.Configuration;
 import com.yammer.dropwizard.config.Environment;
 import com.yammer.dropwizard.config.ServerFactory;
@@ -59,11 +58,14 @@ public class JettyRetainingServerCommand<T extends Configuration> extends
         service.initializeWithBundles(configuration, environment);
         server = new ServerFactory(configuration.getHttpConfiguration(),
                                    service.getName()).buildServer(environment);
-        final Log log = Log.forClass(ServerCommand.class);
+        final Log log = Log.forClass(JettyRetainingServerCommand.class);
         logBanner(service, log);
         try {
             server.start();
             server.join();
+            if (service instanceof JettyRetainingService) {
+                ((JettyRetainingService<T>) service).setServer(server);
+            }
         } catch (Exception e) {
             log.error(e, "Unable to start server, shutting down");
             server.stop();
