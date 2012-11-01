@@ -23,6 +23,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,12 +71,33 @@ public class ServiceRegistrar implements ServerLifecycleListener {
          * @param serviceType
          * @param urlPath
          */
+        @SuppressWarnings("unchecked")
         public Registration(ENDPOINT endpoint, ServiceType serviceType,
                             String urlPath, Map<String, String> properties) {
+            assert endpoint != null : "endpoint must not be null";
             this.endpoint = endpoint;
+            assert serviceType != null : "service type must not be null";
             this.serviceType = serviceType;
+            if (urlPath == null) {
+                urlPath = "/";
+            }
+            if (!urlPath.startsWith("/")) {
+                urlPath = "/" + urlPath;
+            }
             this.urlPath = urlPath;
+            if (properties == null) {
+                properties = Collections.EMPTY_MAP;
+            }
             this.properties = properties;
+        }
+
+        /* (non-Javadoc)
+         * @see java.lang.Object#toString()
+         */
+        @Override
+        public String toString() {
+            return String.format("Registration[%s:%s:%s:%s]", serviceType,
+                                 endpoint, urlPath, properties);
         }
     }
 
