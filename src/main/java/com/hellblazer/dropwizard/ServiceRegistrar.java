@@ -16,6 +16,9 @@
 
 package com.hellblazer.dropwizard;
 
+import io.dropwizard.lifecycle.ServerLifecycleListener;
+import io.dropwizard.setup.Environment;
+
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
@@ -28,15 +31,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.jetty.io.EndPoint;
 import org.eclipse.jetty.server.Connector;
+import org.eclipse.jetty.server.Server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hellblazer.slp.ServiceScope;
 import com.hellblazer.slp.ServiceType;
 import com.hellblazer.slp.ServiceURL;
-import com.yammer.dropwizard.config.Environment;
-import com.yammer.dropwizard.lifecycle.ServerLifecycleListener;
 
 /**
  * @author hhildebrand
@@ -121,10 +124,10 @@ public class ServiceRegistrar implements ServerLifecycleListener {
      * @see com.yammer.dropwizard.lifecycle.ServerLifecycleListener#serverStarted()
      */
     @Override
-    public void serverStarted() {
+    public void serverStarted(Server server) {
         InetSocketAddress main = null;
         InetSocketAddress internal = null;
-        for (Connector connector : environment.getServer().getConnectors()) {
+        for (Connector connector : server.getConnectors()) {
             if (ENDPOINT.INTERNAL.matches(connector)) {
                 try {
                     internal = endpointOf(connector);
@@ -153,11 +156,15 @@ public class ServiceRegistrar implements ServerLifecycleListener {
 
     protected InetSocketAddress endpointOf(Connector connector)
                                                                throws UnknownHostException {
-        String host = connector.getHost() == null ? InetAddress.getLocalHost().getCanonicalHostName()
-                                                 : connector.getHost();
-        int port = connector.getPort() == 0 ? connector.getLocalPort()
-                                           : connector.getPort();
-        return new InetSocketAddress(host, port);
+        for (EndPoint endpoint : connector.getConnectedEndPoints()) {
+            InetSocketAddress address = endpoint.getLocalAddress();
+            String host = address.getHostName() == null ? InetAddress.getLocalHost().getCanonicalHostName()
+                                                       : address.getHostName();
+            return new InetSocketAddress(host, address.getPort());
+        }
+        throw new IllegalStateException(
+                                        String.format("No connected endpoints on: %s",
+                                                      connector));
     }
 
     protected void register(InetSocketAddress main, InetSocketAddress internal)
