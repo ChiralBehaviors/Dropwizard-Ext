@@ -6,6 +6,18 @@
 	<version>0.0.2-SNAPSHOT</version>
 	<name>Drop Wizard extensions</name>
 	<description>Extensions to drop wizard that I use.</description>
+
+	<repositories>
+		<repository>
+			<id>ChiralBehaviors-Snapshots</id>
+			<url>http://repository-chiralbehaviors.forge.cloudbees.com/snapshot/</url>
+		</repository>
+		<repository>
+			<id>hellblazer-snapshots</id>
+			<url>https://repository-hal900000.forge.cloudbees.com/snapshot/</url>
+		</repository>
+	</repositories>
+
 	<dependencies>
 		<dependency>
 			<groupId>io.dropwizard</groupId>
